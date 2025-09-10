@@ -1,0 +1,104 @@
+\doublespacing % Do not change - required
+
+\chapter{Discussion}
+\label{ch:discussion}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMPORTANT
+\begin{spacing}{1} %THESE FOUR
+\minitoc % LINES MUST APPEAR IN
+\end{spacing} % EVERY
+\thesisspacing % CHAPTER
+% COPY THEM IN ANY NEW CHAPTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This chapter has been migrated from the original Chapter~5 and renumbered.
+% It interprets the experimental results, situates them within the broader
+% literature and assesses the strengths and limitations of the governance
+% bot.  All references to earlier chapters have been updated to reflect the
+% new chapter numbering.
+
+This chapter interprets the experimental results, situates them within the
+broader literature and assesses the strengths and limitations of the
+governance bot.  We also discuss how the system relates to fundamental
+concepts in social choice theory and PD.
+
+\section{Interpretation of Results}
+
+The experiment presented in Chapter~\ref{ch:experiments} yielded a rich set of quantitative and qualitative data.  Overall, the weighted token method was perceived as fairer and more satisfying than the standard plurality vote, and participants expressed a clear preference for using it in future decisions.  The following subsections interpret these findings and relate them to the broader literature.
+
+\subsection*{Satisfaction and Fairness}
+Across the three core post‑survey items—whether the process reflected the group’s preferences, satisfaction with the outcome and willingness to reuse the method—the weighted condition outperformed the plurality vote (Table~\ref{tab:survey-results}).  The mean differences were around half a point on a five‑point scale.  These results align with theoretical arguments that cardinal mechanisms allow participants to communicate the intensity of their preferences and can therefore produce outcomes that feel more legitimate to those with strong stakes \cite{Okasha2011}.  In our study the difference manifested most clearly in perceptions of fairness: the token‑allocation mechanism enabled participants to weight alternatives according to how much they cared about them, which translated into higher agreement that the outcome reflected the group’s will.  This echoes recent proposals for quadratic and staked voting in blockchain communities, where cardinal inputs are seen as a way to mitigate tyranny of the majority.  At the same time, the effect size was modest and only one component of the collective plan differed between the two conditions, suggesting that expressive mechanisms may primarily affect perceptions rather than radically altering outcomes in low‑stakes settings.
+
+\subsection*{Ease of Use versus Expressiveness}
+One potential drawback of weighted voting is increased cognitive load: participants must distribute a finite budget across multiple categories and options.  Our results indicate that this complexity was manageable.  Nine out of ten participants agreed or strongly agreed that the weighted process made them feel their voice was heard more clearly than in the plurality vote, and eight felt that they were able to use their tokens effectively.  Moreover, five agreed and four strongly agreed that thinking about token allocation made them consider their choices more carefully.  These findings suggest that the additional expressive power did not deter users; instead, it encouraged reflection.  Nevertheless, some participants requested clearer instructions and a more intuitive interface for token allocation.  In line with literature on PD \cite{Schuler1993PD}, ensuring that users understand the mechanics of a system is crucial for perceived fairness; future iterations should refine the token UI to reduce ambiguity.
+
+\subsection*{Impact on Collective Decisions}
+Despite the higher ratings for weighted voting, the two methods produced almost identical ``Day~Out'' plans.  The sole difference was the afternoon activity: the plurality vote selected sports, whereas the token mechanism selected visiting a museum or gallery.  This divergence illustrates how cardinal preferences can tip the balance when preferences are diverse but not strongly polarised.  Participants who cared deeply about a particular option could convey this by investing more tokens, thereby influencing the outcome even when they were a minority in the plurality vote.  In all other categories the same alternatives won under both rules, implying broad consensus.  These findings underscore that expressive mechanisms may have subtle but meaningful effects on collective decisions, especially when preferences vary in intensity but are not sharply divided.
+
+\subsection*{Method Preference and Adoption}
+When asked which mechanism they would choose for future group decisions, seven participants selected weighted voting outright and three selected weighted voting conditional on increased familiarity; none preferred the plurality rule.  Combined with the improvement in self‑reported understanding of voting methods (eight participants felt their knowledge improved), this suggests a strong appetite for more expressive decision tools.  Participants appeared willing to tolerate slight increases in complexity in exchange for feeling that their preferences were captured more faithfully.  This mirrors findings from studies of participatory budgeting and deliberative polling, where participants value being heard even when processes are more involved \cite{Talpin2011PB}.  Widespread adoption would nevertheless require user education and interface refinements to ensure newcomers can participate without confusion.
+
+Qualitative feedback reinforced these interpretations.  Participants praised the overall concept and ease of use, while a minority requested clearer token allocation instructions.  No one criticised the mechanism itself, indicating general acceptance.  Together, the data show that weighted voting can enhance subjective fairness and satisfaction while remaining accessible, provided the interface communicates its mechanics effectively.
+
+\section{Strengths and Limitations}
+
+\textbf{Strengths}.  The primary strength of the project is its modular
+architecture, which supports multiple classic voting mechanisms and can be
+extended to include new rules.  Implementing the system on a popular
+platform like Discord demonstrates the practicality of computational social
+choice in real‑world settings.  The empirical evaluation combined pre‑ and
+post‑survey data with objective log data, demonstrating the feasibility of
+running controlled studies on a live messaging platform.  Using
+standardised instruments and a counterbalanced design enabled meaningful
+within‑subject comparisons across voting schemes and provided quantitative
+evidence that weighted voting can improve perceptions of fairness and
+satisfaction.
+
+\textbf{Limitations}.  The participant pool was relatively small and
+homogeneous—ten volunteers recruited from the researchers’ networks—which
+limits the generalisability of the findings.  The \emph{Day~Out} scenario
+was low‑stakes; responses may differ for more consequential decisions.
+Discord’s interface constraints required custom solutions that may not
+scale to a large number of options or users, and several participants
+asked for clearer token‑allocation instructions.  The weighted mechanism
+assumes that participants understand and interpret tokens as intended;
+misunderstandings could lead to misrepresentations of preferences.  The
+study did not compare the bot with other governance tools, which would
+help contextualise its usability and effectiveness.  Future work should
+address these limitations through larger and more diverse studies,
+higher‑stakes scenarios, improved UI and comparative
+evaluations.
+
+\section{Relationship to Social Choice Theory}
+
+The governance bot implements several classical social choice mechanisms.
+Plurality and Borda count are positional scoring rules; approval voting
+allows voters to endorse multiple alternatives; runoff and Condorcet methods
+seek an alternative that would win in pairwise comparisons.  Weighted
+voting introduces cardinal preferences reminiscent of quadratic voting
+schemes.  Arrow’s impossibility theorem reminds us that no single rule
+simultaneously satisfies all fairness axioms \cite{Arrow1951}; by allowing
+communities to select among multiple mechanisms, the bot reflects the
+engage–envision–enact philosophy and empowers participants to experiment
+with the trade‑offs inherent in social choice.  The empirical results show
+that allowing participants to allocate tokens increased perceived fairness
+and satisfaction relative to the plurality rule.  This finding resonates
+with Okasha’s observation that different evaluative virtues matter to
+different participants \cite{Okasha2011} and supports arguments for
+cardinal mechanisms.  At the same time, because only one category’s
+outcome changed, the experiment illustrates that expressive methods may not
+drastically alter group decisions in low‑stakes contexts.  Nevertheless, by
+providing a concrete deployment of both ordinal and cardinal rules on a
+messaging platform, the study contributes empirical evidence to debates
+about cardinal versus ordinal preference aggregation.
+
+The system also operationalises participatory and power‑sensitive design
+principles.  By enabling users to propose rules, choose mechanisms and
+withdraw consent, the bot provides meaningful control and transparency.
+Nevertheless, there remain power dynamics inherent in digital platforms; as
+Mertzani and Pitt caution, hybrid human–AI systems can reinforce
+inequalities if those affected are not actively involved in design and
+governance \cite{Mertzani2025SGML}.  Future work should explore how
+machine‑learning tools, such as \emph{what‑if} predictors, can aid
+communities without disempowering them.

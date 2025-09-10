@@ -1,0 +1,105 @@
+\doublespacing % Do not change - required
+
+% The \conclusions macro in the main template creates the chapter heading.
+% Do not include a \chapter command here.
+\chapter{Conclusions}
+\label{ch:conclusions}
+
+This chapter summarises the contributions of the thesis and outlines
+opportunities for future research and development.  In keeping with the
+requirements of the programme, the conclusions provide a critical
+evaluation of the project’s successes and limitations.
+
+\section*{Conclusions}
+
+This thesis presented the design and implementation of a participatory
+governance bot for Discord.  Building on principles from social choice
+theory, PD and algorithmic governance, the bot supports
+multiple voting mechanisms and a weighted campaign mode that allows users
+to express the intensity of their preferences.  A detailed methodology
+was developed and implemented to evaluate the bot through a ``Day~Out'' scenario
+with pre‑ and post‑voting surveys and objective metrics.  The study recruited
+ten participants who completed both a plurality vote and a weighted
+token‑allocation vote.  The empirical results showed that the weighted mechanism
+improved perceptions of fairness and satisfaction on all measured items and was
+overwhelmingly preferred for future decisions.  Only one component of the
+``Day~Out'' plan differed between the two methods—the afternoon activity—indicating
+that cardinal mechanisms can influence outcomes when intensity of preference is
+unequally distributed without radically altering consensus plans.  The modular
+architecture, developed using \texttt{discord.py}, ensures extensibility
+and separates concerns across database management, proposal creation and
+vote counting.  Throughout the project, legal and ethical obligations,
+environmental and social impacts, inclusivity and quality management were
+considered.
+
+The work illustrates how computational social choice can be operationalised
+in a popular communication platform.  It provides a proof‑of‑concept tool
+that communities can adapt to their own governance needs, aligning with
+the engage–envision–enact philosophy of self‑organised socio‑technical
+systems.  By empowering users to select and modify voting rules, the bot
+contributes to a broader agenda of value‑sensitive and power‑sensitive
+design.
+
+\section*{Future Work}
+
+Several avenues remain for further research and development:
+
+\begin{itemize}
+    \item \textbf{Larger and more diverse studies}.  Future experiments
+    should involve more participants from varied backgrounds and explore
+    high‑stakes decision scenarios.  Comparative studies with existing
+    governance tools would contextualise usability and effectiveness.
+    \item \textbf{Enhanced UI}.  Graphical token sliders,
+    adaptive tutorials and accessibility features (e.g., screen‑reader
+    support) could reduce cognitive load and broaden participation.  As
+    Discord introduces new UI components such as dropdowns for slash
+    commands, the bot could integrate these elements to support ranked
+    choice voting more naturally.
+    \item \textbf{Adaptive parameters}.  The current implementation uses
+    static thresholds (e.g., quorum sizes and token budgets).  Machine
+    learning could be employed to tune these parameters based on past
+    participation patterns, user preferences and fairness metrics.
+    \item \textbf{Cross‑platform integration}.  Extending the system to
+    other communication platforms (e.g., Slack or Matrix) and supporting
+    offline participation modes would enhance inclusivity and resilience.
+\end{itemize}
+
+\section*{Hybrid Human-AI Governance and 'What-If' Predictors}
+
+A significant opportunity for future work lies in extending the bot into a
+platform for hybrid human-AI governance.  The current system provides a
+crucial foundation for this line of research by capturing structured
+quantitative data on community preferences (votes, rankings, and token
+allocations).  This data can fuel a machine-learning-based
+\emph{what-if} predictor to help communities deliberate more effectively.
+
+Such a tool would move beyond simple outcome prediction.  By integrating
+Large Language Models (LLMs), the system could analyze the qualitative
+discourse from the debates that precede a vote.  While the current bot
+captures the \emph{what} of a decision, a hybrid approach would also
+process the \emph{why}, by understanding the arguments, sentiments, and
+counterarguments raised in chat discussions.  This allows for a richer
+form of analysis where the system could help communities explore
+counterfactual scenarios.  For example, users could ask: ``What might the
+outcome be if we used Borda count instead of plurality, given the
+second-preference arguments made in the discussion?'' or ``How might
+sentiment change if we rephrased the proposal to address the primary
+concerns raised by its opponents?''.
+
+This hybrid model—fusing quantitative voting data with qualitative
+insights from deliberation—could serve as a powerful deliberative aid.
+However, it must be designed with caution.  As researchers have noted,
+such tools risk shifting power away from users if not implemented with
+transparency and user control at the forefront.  The AI should not be an
+oracle that dictates outcomes, but a tool that helps humans understand
+the complex trade-offs of collective decision-making.  Its purpose is to
+augment, not automate, human judgment, thereby avoiding the pitfalls of
+``techno‑feudalism'' while advancing the potential for more informed and
+reflective democratic processes.
+
+In conclusion, the project demonstrates the potential viability of
+participatory decision‑making tools in contemporary digital environments.
+By bridging theoretical insights from social choice and socio‑technical
+systems with practical implementation, it lays a foundation for
+refining the approach and evaluating it at larger scales, advancing both
+the science and the practice of collective governance.

@@ -1,0 +1,179 @@
+\doublespacing % Do not change - required
+
+\chapter{Methodology and System Design}
+\label{ch:method}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMPORTANT
+\begin{spacing}{1} %THESE FOUR
+\minitoc % LINES MUST APPEAR IN
+\end{spacing} % EVERY
+\thesisspacing % CHAPTER
+% COPY THEM IN ANY NEW CHAPTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This chapter formalises the methodology used to design and implement the
+participatory governance bot.  We specify the final system from the perspective of computer science: the requirements and design
+principles that informed it, its high‑level architecture, the roles of
+its components, the underlying data model, the core algorithms that
+compute outcomes and the UI flows that elicit and record
+preferences.   
+
+\section{System Requirements and Design Principles}
+
+The bot was developed according to three guiding principles that also
+constitute system requirements.  Each principle reflects a normative
+criterion derived from participatory and power‑sensitive design and
+translates into concrete software features:
+
+\begin{enumerate}
+    \item \textbf{Accessibility and Inclusivity}.  The interface must be
+    intuitive and accessible to users regardless of their technical
+    expertise.  In practice this requirement led to the adoption of
+    simple button‑based views rather than text commands.  For example,
+    the proposal creation workflow in \texttt{proposals.py} uses a
+    \texttt{discord.ui.Modal} to solicit a title and description from
+    the user, and presents a button menu for selecting the voting
+    mechanism.  The voting views in \texttt{voting.py} display one
+    question at a time and provide clear instructions and progress
+    indicators.  Input validation and informative error messages
+    minimise cognitive load and encourage broad participation.
+    \item \textbf{User Control and Revocability}.  Participants retain
+    agency throughout the governance process.  They can propose
+    alternatives, choose among supported voting rules, allocate tokens within their budget and withdraw consent at any
+    time.  Commands in \texttt{main.py} are explicitly invoked by
+    users; the bot never autonomously initiates decisions or allocates
+    tokens.  This design adheres to the Engage–Envision–Enact
+    principle of meaningful, informed and revocable participation
+    \cite{Mertzani2023Engage}.  The ability to choose a voting rule
+    empowers communities to experiment with different social choice
+    functions and to explore trade‑offs between expressiveness and
+    simplicity.
+    \item \textbf{Extensibility and Maintainability}.  The system must
+    accommodate new voting mechanisms, user roles and data collection
+    features without extensive refactoring.  To achieve this, the
+    architecture separates responsibilities into modules: the
+    persistence layer in \texttt{db.py}, the UI in
+    \texttt{proposals.py} and \texttt{voting.py}, the counting
+    algorithms in \texttt{voting\_utils.py} and the orchestration and
+    background tasks in \texttt{main.py}.  Each module exposes
+    asynchronous functions that encapsulate their state and avoid
+    blocking the event loop.  Adding a new voting rule amounts to
+    implementing a new counting function and associated view without
+    modifying the existing infrastructure.  This modularity also
+    facilitates testing and integration with alternative platforms in
+    the future.
+\end{enumerate}
+
+\section{High‑Level System Architecture}
+The bot is implemented in Python using the asynchronous
+\texttt{discord.py} library and adheres to an event‑driven architecture.
+When the bot connects to a server it registers event handlers for
+commands (such as proposal submission and vote casting) and user
+interactions (button clicks or modal submissions).  These handlers
+enqueue tasks into an \texttt{asyncio.Queue}; a background worker
+processes the queue to update tracking messages and publish results.
+The architecture is decomposed into five cooperating subsystems:
+\begin{itemize}
+    \item \textbf{Discord API}.  The remote service delivers
+    messages, button presses and modal submissions to the bot and
+    conveys the bot’s responses back to users.  The bot must respect
+    API rate limits and handle network failures gracefully.
+    \item \textbf{Bot core (\texttt{main.py})}.  This entry point
+    instantiates the Discord client, registers event handlers, schedules
+    background tasks to check proposal deadlines and to announce
+    results, and mediates between the UI and the logic
+    layer.  It maintains an \texttt{asyncio.Queue} to decouple
+    asynchronous updates from user interactions and provides utility
+    commands for administrators to inspect and modify settings.
+    \item \textbf{UI components (\texttt{proposals.py} and
+    \texttt{voting.py})}.  These modules implement the interactive
+    workflows for proposal creation, campaign setup and voting.  They
+    construct modal dialogs (e.g., to gather a title, description and
+    options) and button‑based views for selecting a voting rule,
+    ranking alternatives, approving options or allocating tokens.
+    \item \textbf{Logic and algorithms (\texttt{voting\_utils.py})}.
+    This module encapsulates the voting rules and tallying procedures
+    described in Section~\ref{sec:algorithms}.  It exposes pure
+    functions that accept ballots and token allocations and return
+    winners and rankings under both unweighted and weighted conditions.
+    \item \textbf{Persistence layer (\texttt{db.py})}.  All
+    proposals, options, votes, campaigns, user participation records
+    and server‑level settings are stored in a SQLite database.  The
+    module provides asynchronous functions for creating, querying and
+    updating records while hiding SQL details from the rest of the
+    system.
+\end{itemize}
+
+
+This decomposition ensures that changes in one component (such as
+adding a new voting rule or a different persistence layer) do not
+propagate unintended side effects to others.  Asynchronous programming
+enables the bot to handle multiple concurrent interactions without
+blocking the event loop, and the \texttt{asyncio.Queue} decouples
+long‑running updates (such as posting result messages) from user
+interactions.  The database schema is normalised to avoid redundancy
+and to support efficient queries.
+
+% ------------------------------------------------------------
+% Implementation details have been moved to Chapter~\ref{ch:implementation}.
+% This chapter focuses on high‑level design and methodological
+% considerations.  The following section discusses computational and
+% fairness considerations that informed the overall design.
+\section{Computational Considerations and Fairness}
+Having introduced the system requirements and the high‑level
+architecture, we now discuss the computational and normative factors
+that shaped the design.  A fundamental insight from social choice theory
+is that no voting rule satisfies all fairness axioms simultaneously.
+Arrow’s impossibility theorem shows that, for three or more
+alternatives, no rank‑ordering rule can simultaneously satisfy
+unrestricted domain, Pareto efficiency, independence of irrelevant
+alternatives and non‑dictatorship \cite{Arrow1951}.  The Gibbard–Satterthwaite
+theorem demonstrates that any deterministic, non‑dictatorial rule with at
+least three alternatives is susceptible to strategic manipulation \cite{Gibbard1973,Satterthwaite1975}.  In
+addition to these impossibility results, desirable axioms include:
+
+\begin{itemize}
+    \item \textbf{Anonymity} (all voters are treated equally);
+    \item \textbf{Neutrality} (all alternatives are treated equally);
+    \item \textbf{Majority criterion} (if a majority of voters rank an
+    alternative first, that alternative should win);
+    \item \textbf{Condorcet criterion} (if an alternative beats every
+    other alternative in pairwise comparisons, it should win);
+    \item \textbf{Monotonicity} (raising an alternative in a ranking
+    should not hurt its chances of winning);
+    \item \textbf{Participation} (no voter should benefit from abstaining).
+\end{itemize}
+Different rules satisfy different subsets of these axioms.  For
+instance, plurality satisfies anonymity and neutrality but fails the
+Condorcet criterion and majority criterion in some cases; Borda count
+satisfies anonymity and neutrality but violates independence of irrelevant
+alternatives; approval voting satisfies anonymity and neutrality and
+reduces vote splitting but fails the Condorcet and majority criteria;
+Condorcet methods satisfy the majority criterion and the Condorcet
+criterion but may fail to produce a unique winner.  Weighted (token)
+voting deliberately violates anonymity by design: voters allocate a
+bounded budget of tokens to express intensity, trading off equality
+against representational fairness.  Recognising these trade‑offs, our
+approach empowers communities to choose among mechanisms according to
+their priorities.
+
+Computational complexity also constrains the choice of voting rules.
+Many appealing rules are computationally intractable: computing the
+Kemeny–Young consensus ranking—a method that seeks a ranking which minimises the number of pairwise disagreements with voters' preferences—is NP‑hard \cite{Bartholdi1989}, as is determining winners
+under the Dodgson method.  To ensure responsiveness on a live Discord
+platform, our bot implements only polynomial‑time rules: plurality,
+Borda, approval, instant runoff and Condorcet (via simple pairwise
+majority matrices).  This reflects the literature’s recommendation to
+balance fairness with feasibility.  Future versions could explore
+approximate algorithms or off‑loading heavy computations to external
+services.
+
+In summary, the methodology emphasises fairness, expressiveness and
+computational tractability.  Detailed implementation of the components,
+database schema, algorithms and UI flows are provided in
+Chapter~\ref{ch:implementation}.  That chapter translates the
+conceptual design presented here into concrete code.
+
+% End of high-level methodology.  Detailed implementation sections have been
+% removed from this chapter and now reside in Chapter~\ref{ch:implementation}.

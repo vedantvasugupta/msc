@@ -1,0 +1,121 @@
+\doublespacing % Do not change - required
+
+\chapter{Introduction}
+\label{ch:introduction}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMPORTANT
+\begin{spacing}{1} %THESE FOUR
+\minitoc % LINES MUST APPEAR IN
+\end{spacing} % EVERY
+\thesisspacing % CHAPTER
+% COPY THEM IN ANY NEW CHAPTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Background and Motivation}
+
+Collective decision‐making is a fundamental activity of human societies.  When
+groups must choose a policy, allocate resources or establish a social norm, they
+need to aggregate diverse preferences into a single outcome.  The field of
+\emph{social choice theory} formalises this problem and studies the properties of
+different aggregation mechanisms.  Arrow’s impossibility theorem famously
+showed that no rank‑ordering rule can simultaneously satisfy four key axioms—unrestricted domain, Pareto
+efficiency, independence of irrelevant alternatives, and non‑dictatorship \cite{Arrow1951}.  Subsequent theorists have
+argued that the real problem of social choice is to determine which
+combination of gains and losses across individuals is socially
+preferable \cite{Black1958, Okasha2011}.  These results highlight fundamental
+trade‑offs between fairness, representativeness and manipulability.
+
+With the proliferation of online communities on platforms such as Discord and
+Slack, collective decision‑making increasingly occurs through digital
+interfaces.  However, the native polling tools offered by these platforms are
+rudimentary: they typically limit the number of options, do not allow ranked or
+weighted voting, and provide little transparency about how winners are
+determined.  Communities therefore require governance tools that embed richer
+voting mechanisms while remaining accessible to non‑experts.
+
+Recent work in socio‑technical systems argues that legitimate governance
+requires continuous civic participation across the \emph{engage–envision–enact}
+cycle.  Mertzani \emph{et~al.} \cite{Mertzani2023Engage} note that democracy should not be treated as a
+static, universally optimal regime; anthropological and political evidence
+demonstrates that democratic institutions evolve and may require adaptation to
+remain fit for purpose.  They argue that legitimate
+consent arises when governance processes are meaningful, informed and
+revocable, and that communities must be empowered to reflect on and
+reconfigure their social arrangements.  Related research on socially‑guided
+machine learning emphasises that hybrid human–AI systems risk reinforcing
+existing power asymmetries unless those affected participate in designing and
+modifying decision mechanisms \cite{Mertzani2025SGML}.  Together, these
+perspectives motivate the design of participatory governance tools that
+encourage reflection, support multiple voting methods and respect user
+autonomy.
+
+\paragraph{Limitations of native polls.}  The standard polling
+widgets provided by Discord and similar platforms present only a small
+ number of options and permit users to select, at most, one.  They
+implement a simple plurality rule whereby the alternative with the
+largest number of votes wins; no majority is required, and ties are
+handled arbitrarily \cite{Black1958}.  Such rules ignore the intensity of
+preferences and cannot accommodate ranked or weighted ballots.  In
+ addition, the User Interface (UI) does not allow participants to express
+indifference or approval for multiple options.  From a theoretical
+ perspective, these limitations map directly to the impossibility
+results of social choice: Arrow’s theorem shows that no ranked‑choice
+rule can simultaneously satisfy fairness criteria such as the
+independence of irrelevant alternatives and non‑dictatorship; all
+rules entail trade‑offs \cite{Arrow1951}.  By restricting
+choice to a single checkbox, native polls implicitly select one point
+in this trade‑off space without giving communities the ability to
+choose alternative mechanisms.  Our motivation is therefore to
+construct a platform that exposes multiple voting rules, supports
+the expression of preferences through ranking and weighting, and remains usable for
+non‑experts despite the constraints of the Discord interface.
+
+\section{Objectives}
+
+The overarching research question of this thesis is:
+
+\begin{quote}
+\emph{How can an online governance tool support diverse and expressive voting mechanisms while remaining usable and trustworthy to community members?}
+\end{quote}
+
+To address this question, we pursue four objectives:
+\begin{enumerate}
+    \item \textbf{Theoretical review}: Survey the foundations of social choice
+    theory, PD and algorithmic governance, emphasising the
+    trade‑offs uncovered in the literature.
+    \item \textbf{System design}: Formally specify and implement a
+    governance tool integrated within the chat platform that enables proposal submission and
+    supports multiple voting mechanisms—plurality, Borda, approval,
+    instant runoff and Condorcet—together with an optional weighted
+    scheme.  The design emphasises a clear architecture with
+    well‑defined components, data models and algorithms rather than a
+    chronological narrative of software development.  All interface
+    elements must respect the platform’s limitations on modals and
+    components while remaining intuitive for non‑expert users.
+    \item \textbf{Empirical evaluation}: Design and conduct a controlled
+    experiment using a \emph{Day~Out} scenario.  Ten participants took
+    part in both plurality and weighted voting sessions and completed pre‑ and
+    post‑surveys measuring their satisfaction with the process and outcome, perceptions of fairness and the extent to which the final decision reflected the group’s preferences, as well as their willingness to reuse the mechanism.  The resulting data are analysed in Chapter~\ref{ch:experiments}, where we report descriptive statistics, compare the two voting methods and summarise participants’ preferences and qualitative feedback.
+    \item \textbf{Reflection and impact}: Reflect on the strengths and
+    limitations of the system, propose future improvements—including a
+    machine‑learning–based \emph{what‑if} predictor—and assess the
+    environmental and societal impacts of participatory governance.
+\end{enumerate}
+
+\section{Structure of the Thesis}
+
+The remainder of the thesis is organised as follows.  Chapter~\ref{ch:litreview}
+presents a literature review of social choice theory, participatory and
+power‑sensitive design, digital voting systems and fairness criteria.
+Chapter~\ref{ch:method} introduces the methodology and high‑level system
+design, presenting the guiding principles and architecture of the governance
+tool.  Chapter~\ref{ch:implementation} details the technical implementation,
+describing the components, data model, algorithms and user‑interface flows.
+Chapter~\ref{ch:experiments} describes the experimental setup, reports the collected data and compares the plurality and weighted voting conditions.
+Chapter~\ref{ch:discussion} interprets the results, situates them within
+the broader literature and critiques the system’s strengths and limitations.
+Chapter~\ref{chLast} contains reflections on legal, ethical, environmental
+and inclusion aspects of the work, together with project limitations and
+technical challenges.  Finally, Chapter~\ref{ch:conclusions} concludes the
+thesis and outlines directions for future research.

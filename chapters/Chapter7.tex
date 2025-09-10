@@ -1,0 +1,227 @@
+\doublespacing % Do not change - required
+
+\chapter{Reflections}
+\label{chLast}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMPORTANT
+\begin{spacing}{1} %THESE FOUR
+\minitoc % LINES MUST APPEAR IN
+\end{spacing} % EVERY
+\thesisspacing % CHAPTER
+% COPY THEM IN ANY NEW CHAPTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This chapter has been migrated from the original LastChapter and
+% renumbered.  It provides a reflective assessment of the project from
+% legal, ethical, environmental and inclusion perspectives, discusses
+% quality management practices and introduces a new section on project
+% limitations and technical challenges.
+
+This final substantive chapter provides a reflective assessment of the
+project from legal, ethical, environmental and inclusivity perspectives.
+It also discusses quality management practices employed during
+development.  Such reflections are required by the programme’s learning
+outcomes and ensure that engineering work is situated within its broader
+social context.
+
+\section{Legal and Ethical Matters}
+
+\textbf{Legal considerations}.  The governance bot processes user input on
+Discord servers.  Although the bot stores only minimal metadata—such as
+anonymised votes and tokens—it nevertheless interacts with personal data.
+The implementation adheres to the spirit of data protection regulations
+such as the UK GDPR.  No personally identifiable information is stored;
+user identifiers are hashed before being persisted, and only aggregate
+statistics are published.  Users are informed about how their data will
+be used, and participation in weighted campaigns is strictly opt‑in.
+Intellectual property rights were respected: external libraries were used
+under appropriate licences, and contributions to the open‑source
+repository are attributed.
+
+The system implements privacy by design.  Each user’s unique Discord identifier
+is passed through a cryptographic one‑way hash function before being
+stored, and the original identifier is never written to the database.
+The bot stores token allocations only in aggregated form; individual
+allocations are deleted once the result has been announced.
+Participation in weighted campaigns is explicitly opt‑in and users can
+withdraw their consent at any time, upon which their votes and token
+allocations are removed from the data store.  These practices align
+with data‑protection principles of minimisation, purpose limitation
+and the right to be forgotten.
+
+\textbf{Ethical considerations}.  Algorithmic governance systems can
+embed biases that disadvantage certain users.  To mitigate this, the bot
+offers multiple voting mechanisms and allows communities to choose their
+preferred method.  Weighted voting raises ethical questions about
+commodifying preferences.  Tokens were framed as a budget for expressing
+intensity rather than as a currency; no real financial stakes are
+involved.  The experimental protocol received informal ethical approval
+from the supervisor, and participants provided informed consent.  The
+results were anonymised, and participants could withdraw at any time.
+
+When designing the token system we avoided analogies that could be
+interpreted as monetising influence.  Tokens are allocated equally to
+all participants and cannot be purchased, transferred or saved across
+decisions.  The budget of one hundred tokens provides sufficient
+granularity to express intensity without overwhelming users; future
+studies could experiment with different budgets.  Instructions
+emphasise that tokens signify the strength of preference rather than
+financial value, and the UI prevents over‑investment by
+enforcing the budget constraint.  These choices are intended to
+preserve the normative distinction between civic participation and
+market exchange.
+
+Beyond compliance with data protection statutes, algorithmic governance
+raises broader questions of legitimacy and power.  The
+Engage–Envision–Enact framework reminds us that democracy should not
+be assumed to be a universal end state and that legitimacy derives from
+meaningful, informed and revocable participation.  Designers must
+therefore ensure that participants understand the voting mechanisms and
+have the ability to contest outcomes or propose alternatives.  The
+socially‑guided machine learning literature warns of the dangers of
+``techno‑feudalism'' if AI systems mediate decisions without proper
+oversight \cite{Mertzani2025SGML}.  While our bot does not employ
+machine learning, future extensions (such as the proposed
+\emph{what‑if} predictor) must be scrutinised for potential biases and
+their impact on power relations within the community.
+
+\section{Environmental and Social Impact}
+
+\textbf{Environmental impact}.  The bot runs on modest cloud hardware
+and uses lightweight data storage.  Energy consumption is minimal
+compared with compute‑heavy AI systems.  The project’s main environmental
+contribution lies in its potential to support collaborative decision‑making
+that could, for example, promote sustainable activities (e.g., choosing a
+low‑carbon outing) or facilitate coordination of community projects.  The
+source code and documentation are released under an open‑source licence,
+enabling reuse and reducing duplication of effort.
+
+\textbf{Social impact}.  By empowering communities to participate in
+governance, the bot can foster a sense of ownership and collective
+responsibility.  However, digital divides persist: not all community
+members have equal access to or familiarity with Discord.  To mitigate
+exclusion, future versions could integrate with alternative platforms or
+provide offline participation modes.  There is also a risk that weighted
+voting may privilege vocal or well‑resourced participants if not carefully
+explained.  Transparent rules and community moderation are essential to
+prevent misuse.
+
+Digital divides manifest along multiple dimensions: access to devices and
+internet connectivity, familiarity with online platforms and ability to
+navigate UIs.  To address these issues, future iterations of
+the governance tool should implement cross‑platform clients—for example,
+a web portal accessible via browsers, SMS‑based interfaces for users
+without smartphones or dedicated mobile applications with offline
+support.  Providing multilingual options and clear tutorials will help
+broaden participation.  The token system must be accompanied by
+transparent explanations and community guidelines to avoid perceptions
+that influence is being bought.  Community moderation and participatory
+rule‑setting processes can help ensure that weighting schemes are
+understood and accepted.
+
+Self‑organising decision systems must also guard against Goodhart’s
+law: optimising for a single metric (for example, participation rate
+or energy use) can distort behaviour and undermine the ultimate goals of
+fairness or sustainability.  Implementing multiple measures and
+qualitative feedback channels can help maintain balanced evaluation
+criteria.
+
+\section{Equality, Diversity and Inclusion}
+
+The design sought to be inclusive of users with diverse abilities and
+backgrounds.  Buttons and modal interfaces were labelled clearly, and
+instructions avoided jargon.  Surveys asked participants about ease of
+use to identify accessibility issues.  Weighted voting allows
+individuals to distribute preference intensity, which can benefit
+minorities by signalling strong support for less popular options.
+Nonetheless, weighted schemes could disadvantage users unfamiliar with
+token allocations.  Future work should include accessibility testing
+with users from varied age groups, technical proficiencies and
+disabilities.  Features such as screen‑reader compatibility, high‑contrast
+colour schemes, keyboard navigation, descriptive alternative text for
+icons and clear error prompts are essential to ensure that the bot is
+usable by people with visual or motor impairments.  Providing input
+methods beyond buttons—such as slash commands or voice interfaces—can
+accommodate different interaction preferences.
+
+Ensuring inclusivity also involves linguistic and cultural
+considerations.  Many online communities span multiple countries and
+language groups; therefore, future versions of the bot should support
+multilingual interfaces and consider cultural differences in voting
+norms.  Integration with platforms beyond Discord—including web portals
+that work with screen readers, SMS‑based interfaces for users without
+smartphones and printed ballots for in‑person meetings—could broaden
+participation and bridge digital divides.  Engagement with community
+stakeholders from the earliest design stages will help surface diverse
+needs and avoid assumptions about homogeneity.  Co‑design workshops and
+iterative user testing can ensure that the governance tool remains
+accessible, equitable and culturally sensitive.
+
+\section{Quality Management Systems}
+
+Quality management was integral throughout the project.  The GitHub
+repository used version control to track changes, with meaningful commit
+messages explaining the rationale for modifications.  Continuous
+integration scripts automatically ran unit tests on key functions, such as
+proposal creation and vote counting, to detect regressions.  Code was
+organised into modules with clear interfaces to facilitate peer review and
+future maintenance.  Documentation was maintained in README files and
+inline comments.  During deployment, logging and error handling were
+implemented to monitor runtime behaviour and diagnose issues quickly.
+
+Regular peer review sessions were held to inspect code for clarity,
+conformance to style guidelines and potential security issues.  Issues
+were tracked using GitHub’s issue tracker, and each feature branch
+underwent automated testing and manual review before merging.  The use
+of continuous integration ensured that refactoring or adding new voting
+rules did not break existing functionality.  These practices align with
+industry standards and facilitate future maintenance and collaboration.
+
+\section{Project Limitations and Technical Challenges}
+
+The design and implementation of the governance bot were subject to
+several practical limitations and technical challenges.  First, the
+Discord platform provides only a handful of interaction widgets: at most
+five buttons per message, short text inputs in modals and no native
+drag‑and‑drop or dropdown selectors.  Implementing complex voting rules
+within these constraints required creative solutions.  For instance,
+ranking alternatives for the Borda, IRV and Condorcet methods was
+realised through a sequence of prompts asking users to select their next
+preferred alternative rather than through a single ranked form.  Token
+allocation in weighted voting involved increment and decrement buttons and
+a progress bar to convey the remaining budget.  These sequential
+interactions increase the number of clicks compared with native polls and
+may introduce fatigue; however, they were necessary to comply with the
+platform’s API limitations.
+
+Second, the absence of real-time feedback mechanisms on Discord limited
+the ability to provide immediate visualisations of current vote tallies.
+To mitigate bandwagon effects—a phenomenon where voters are swayed by
+interim results—the bot deliberately suppresses interim counts until
+voting closes.  This design choice is grounded in the literature on the
+bandwagon effect and aims to preserve independence of irrelevant
+alternatives.  Nevertheless, it means that participants do not receive
+dynamic feedback on how their community is voting, which may reduce
+engagement for users accustomed to live polls.
+
+Third, computational efficiency informed the choice of voting rules.  Some
+systems in social choice, such as Kemeny’s method, are NP-hard to compute
+exactly.  Our implementation therefore supports only polynomial-time
+algorithms such as plurality, Borda, approval, instant runoff and
+Condorcet (with a simple majority matrix).  While this decision aligns
+with feasibility constraints, it excludes methods that satisfy stronger
+fairness axioms but incur intractable computation.  Future work could
+explore approximate algorithms or off-chain computation to expand the
+available mechanisms.
+
+Finally, developing a robust and secure bot requires careful handling of
+concurrency and data persistence.  The event-driven nature of
+\texttt{discord.py} demands asynchronous programming; mismanaging
+coroutines can lead to deadlocks or lost updates.  Similarly, ensuring
+that the database is updated atomically and that race conditions do not
+corrupt state was a key challenge.  Logging, extensive testing and
+incremental deployment helped address these issues but required
+substantial engineering effort.  Recognising these limitations and
+challenges provides valuable lessons for future iterations of the
+governance platform.

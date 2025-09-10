@@ -1,0 +1,184 @@
+\doublespacing % Do not change - required
+
+\chapter{Literature Review}
+\label{ch:litreview}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMPORTANT
+\begin{spacing}{1} %THESE FOUR
+\minitoc % LINES MUST APPEAR IN
+\end{spacing} % EVERY
+\thesisspacing % CHAPTER
+% COPY THEM IN ANY NEW CHAPTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This chapter synthesises the theoretical and empirical foundations
+underpinning the design of our participatory governance bot.  We first
+survey key results from social choice theory and introduce the voting
+methods implemented in the system.  We then review existing digital
+voting systems that operate within constrained UIs, drawing
+lessons from the design patterns and limitations of popular tools on
+Discord and Slack.  Next we discuss Participatory Design (PD) principles for
+collaborative decision tools, followed by a review of research on
+user‑experience (UX) and cognitive considerations for voting
+interfaces.  Finally, we summarise computational considerations and
+fairness criteria that guide our later analysis of the implemented
+mechanisms.
+
+\section{Foundations in Social Choice Theory and Voting Methods}
+
+Social choice theory studies how individual preferences can be aggregated
+into a collective decision.  A \emph{voting rule} takes as input a set of
+alternatives and the voters’ preference orderings and outputs either a
+winner or a social ordering.  Arrow’s impossibility theorem shows that
+no rank‑ordering rule on three or more alternatives can simultaneously
+satisfy unrestricted domain, Pareto efficiency, independence of
+irrelevant alternatives and non‑dictatorship \cite{Arrow1951,Gibbard1973,Satterthwaite1975}.
+This negative result forces any voting rule to compromise on at least
+one desirable property.  Gibbard and Satterthwaite further showed that
+with at least three alternatives any non‑dictatorial deterministic rule
+that always selects a winner is susceptible to strategic
+manipulation; there is no strategy‑proof rule other than random
+dictatorship for unrestricted preferences.  These impossibility results
+motivate the plurality of voting methods used in practice and
+implemented in our system.
+
+\subsection{Positional and Approval Rules}
+
+\emph{Positional scoring rules} assign points based on an option’s
+position in each voter’s ranking.  The simplest is the plurality rule:
+only the top‑ranked option on each ballot earns a point, and the option
+with the largest first‑place count wins \cite{Black1958}.  The Borda
+count assigns each option a number of points equal to the number of
+options ranked below it; summing these scores yields a winner \cite{Borda1784}.  Approval voting discards rankings entirely: voters
+mark any number of options they approve, and the option with the most
+approvals wins \cite{Black1958}.  These rules are computationally
+simple (polynomial time) and satisfy anonymity and neutrality, but they
+violate other criteria such as the independence of irrelevant alternatives
+or the Condorcet criterion.
+
+\subsection{Runoff and Pairwise Methods}
+
+Runoff methods simulate a series of rounds.  Instant‑runoff voting
+(also known as the single transferable vote) repeatedly eliminates the
+option with the fewest first‑place votes and redistributes those votes
+according to the next preferences until a single option remains \cite{Bartholdi1989}.
+Condorcet methods compare options pairwise: an option that defeats every
+other option in head‑to‑head comparisons is the Condorcet winner and
+should be elected \cite{Condorcet1785}.  In the absence of a Condorcet
+winner, methods such as the Schulze or ranked pairs rule select a
+winner by constructing a ranking that respects as many pairwise
+preferences as possible.  Computing an exact Kemeny ranking—which
+maximises the number of pairwise agreements—is NP‑hard, illustrating
+that some desirable rules are computationally intractable.  Our bot
+implements plurality, Borda, approval, instant runoff and Condorcet
+counting in a modular fashion and avoids NP‑hard methods in favour of
+polynomial‑time algorithms.
+
+\subsection{Cardinal and Weighted Mechanisms}
+
+Cardinal mechanisms allow voters to express intensities rather than
+just orderings.  Quadratic voting endows each participant with a budget
+of voice credits; buying $v$ votes costs $v^2$ credits, making
+additional votes progressively more expensive \cite{Bartholdi1989}.
+Such mechanisms can reveal how strongly individuals feel about
+alternatives but may favour participants with larger budgets.  Our
+implementation uses a simplified weighted approach: each voter receives
+a fixed endowment of tokens and allocates them across alternatives.
+Token allocations are summed to compute weighted scores, balancing
+expressiveness with equity.  The design acknowledges the normative
+debates around cardinal voting and retains anonymity by assigning
+equal budgets to all participants.
+
+\section{Digital Voting Systems in Constrained UIs}
+
+Beyond theoretical considerations, practical implementations of digital
+voting systems must operate within the constraints of chat platforms.
+Discord and Slack are popular environments for community governance, but
+their interfaces offer limited interaction primitives—typically
+commands, reactions, buttons and modal dialogs.  Existing bots tend
+to implement only simple voting rules.  For example, the Votex bot
+allows administrators to assign a multiplier to each role; votes are
+weighted accordingly, enabling DAOs and councils to run weighted polls
+using a slash command \cite{ZikenLabs2024}.  Dyno and EasyPoll are
+general‑purpose moderation bots that provide a \texttt{?poll} command,
+adding reaction emojis for each option and counting the reactions after
+an expiration period.  Such reaction‑based polls use plurality
+exclusively and provide no support for ranked or weighted voting.  On
+Slack, the Polly.ai application simplifies real‑time feedback by letting users run
+polls and surveys directly in chat; it is best known for facilitating
+on‑the‑fly questions and quizzes and presenting results instantly in the
+chat interface \cite{ZapierSlackPoll2023}.  Despite their popularity,
+these tools share limitations: they restrict users to binary or
+unordered inputs, provide little control over anonymity or timing and
+lack extensibility for experimenting with alternative rules.
+
+These observations motivate the design of a more expressive governance
+bot.  Our implementation leverages Discord’s limited UI primitives to
+support multiple voting rules, ranking, and weighted token allocation
+without requiring external websites.  The challenges of constrained
+interfaces are revisited in Chapter~\ref{ch:implementation} when
+describing the UI flows.
+
+\section{Participatory Design in Collaborative Decision Tools}
+
+PD emphasises involving stakeholders throughout
+    the development process so that technology reflects their values,
+requirements and constraints \cite{Schuler1993,Schneider2018}.  Value‑sensitive design (VSD) extends PD
+by making explicit the values—such as democracy, privacy and fairness—
+that are embedded in artefacts.  Power‑sensitive design (PSD) further
+acknowledges that socio‑technical systems can reproduce or amplify
+existing power asymmetries.  Mertzani \emph{et~al.} advocate an
+\emph{engage–envision–enact} cycle: communities should continuously
+engage in governance, envision alternative regimes and enact changes
+in response to shifting circumstances.  They caution against treating
+democracy as an immutable ideal and highlight how governance practices
+vary across cultures and contexts.  In the socially‑guided machine
+learning framework, hybrid human–AI systems are co‑designed to empower
+communities while preserving equity and transparency.  These principles
+inform the design requirements of our bot: user control, extensibility
+and accessibility.  Stakeholders must be able to choose voting rules,
+adjust token budgets and override decisions; the software must be
+modular and open to modification; and the interface should lower
+barriers to participation for novices.
+
+\section{UX and Cognitive Aspects of Voting Interfaces}
+
+Voting interfaces must balance expressiveness—the ability to capture
+complex preferences—and usability, which demands simplicity to reduce
+cognitive load.  Presenting a long list of options in a single form may
+overwhelm users, leading to abandonment or heuristic shortcuts.  Ranked
+ballots require voters to articulate an order for every alternative,
+which can be cognitively taxing when many options exist.  Cardinal mechanisms add another layer of complexity by asking users to allocate
+limited budgets.  To mitigate these issues, designers can break tasks
+into smaller steps, provide progress indicators and limit the number of
+options displayed at once.  Empirical work comparing chatbot and menu‑based
+interfaces shows that cognitive load and user satisfaction depend strongly on the simplicity of interaction \cite{Nguyen2022}.  Another concern is the \emph{bandwagon
+effect}: when interim results are visible, voters may follow the
+majority rather than expressing independent preferences.  Hiding
+intermediate tallies until voting closes can reduce this bias.  Our
+bot adopts these UX principles: ranking and token allocation are
+elicited through sequential dialogs with clear feedback; progress bars
+indicate how many tokens remain; and voting results are hidden until
+the deadline.  These choices are grounded in cognitive psychology and
+relevant literature on digital polling interfaces \cite{[ADD CITATION for cognitive psychology in digital polling interfaces]}.
+
+\section{Computational Considerations and Fairness Criteria}
+
+Implementing voting rules requires balancing computational
+tractability with normative desiderata. \cite{[ADD CITATION for trade-offs in computational social choice]}  Some rules, such as plurality,
+Borda and approval, can be computed in linear time in the number of
+votes.  Instant‑runoff and Condorcet methods require sorting and pairwise
+comparison but remain polynomial‑time.  Kemeny ranking, in contrast, is
+NP‑hard; our system avoids it to ensure scalability.  Beyond complexity,
+fairness axioms help evaluate and compare rules.  \emph{Anonymity}
+requires that outcomes depend only on the multiset of ballots, not on
+voter identities.  \emph{Neutrality} demands that all alternatives are
+treated symmetrically.  The \emph{majority criterion} states that if
+some alternative is ranked first by a majority of voters, it should win.
+The \emph{Condorcet criterion} requires that a Condorcet winner, if it
+exists, must be elected.  \emph{Monotonicity} holds that raising an
+option’s position in any ballot should not harm its chances.  No single
+rule satisfies all criteria simultaneously—an echo of Arrow’s theorem.
+In later chapters we use these criteria to reflect on the strengths and
+limitations of the implemented voting mechanisms.

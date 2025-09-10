@@ -1,0 +1,292 @@
+\doublespacing % Do not change - required
+
+\chapter{System Implementation}
+\label{ch:implementation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMPORTANT
+\begin{spacing}{1} %THESE FOUR
+\minitoc % LINES MUST APPEAR IN
+\end{spacing} % EVERY
+\thesisspacing % CHAPTER
+% COPY THEM IN ANY NEW CHAPTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This chapter details the technical implementation of the governance bot.
+Where Chapter~\ref{ch:method} established the design principles and
+high‑level architecture, here we describe how those concepts were
+realised in code.  We document the roles of each software module, the
+database schema, the algorithms used to tally ballots and the user
+interaction flows.  Throughout the chapter we justify design choices
+against the literature reviewed in Chapter~\ref{ch:litreview}.  For
+example, the interface uses simple buttons and sequential prompts to
+minimise cognitive load, in line with usability heuristics, and hides
+interim tallies to mitigate the bandwagon effect.  The supported voting
+rules are limited to those with polynomial‑time algorithms, reflecting
+computational considerations discussed in the literature.
+
+\section{Component Implementation}
+
+Each module of the bot encapsulates a specific responsibility and
+communicates with other modules via asynchronous function calls.  The
+main components are as follows:
+
+\paragraph{\texttt{main.py} (bot core).}  This file is the entry point
+for the Discord client.  It registers command handlers for proposal
+submission, voting initiation and administrative functions, and it
+schedules background tasks such as \emph{deadline checks} and
+\emph{result announcements}.  It maintains an \texttt{asyncio.Queue}
+that acts as a task buffer.  When a vote is recorded or a proposal’s
+status changes, messages are pushed onto the queue; a worker coroutine
+consumes tasks to update tracking embeds or to post final results.  The
+bot core also exposes commands for administrators to view and modify
+server‑level settings (e.g., default voting mechanism and token
+budget).
+
+\paragraph{\texttt{proposals.py} (proposal and campaign creation).}
+This module defines classes derived from \texttt{discord.ui.Modal} and
+\texttt{discord.ui.View} to present interactive forms to users.  When a
+user invokes the proposal command, a modal prompts for a title,
+description, deadline and set of options.  For weighted campaigns the
+modal additionally asks for the number of tokens per voter and the
+number of sub‑decisions (e.g., breakfast, transport, activity, dinner).
+Upon submission the module validates inputs, writes the proposal and
+options to the database and notifies moderators.  It also displays a
+view allowing the creator to select a voting mechanism.  The modular
+design of these classes means that adding a new field or workflow
+involves subclassing and overriding callbacks rather than editing the
+bot core.
+
+\paragraph{\texttt{voting.py} (user interaction during voting).}
+This module contains a family of \texttt{discord.ui.View} classes that
+guide the user through casting a ballot.  For plurality and approval
+rules, the view displays a row of buttons corresponding to options and
+records the user’s selection or approvals.  For ranked voting
+(Borda, instant runoff and Condorcet), the view presents successive
+choices asking the voter to select their next most preferred option
+until a complete ranking is built.  For weighted voting, the view
+displays increment and decrement buttons next to each alternative and a
+progress bar indicating how many tokens remain.  When the user
+confirms their choices, the view calls into the database to record the
+ballot and triggers an update on the task queue.  The design ensures
+that all user input is solicited through clear, sequential interactions
+despite Discord’s limitations on interface components.  Hiding interim
+results prevents social influence and bandwagon effects as discussed in
+the literature.
+
+\paragraph{\texttt{voting\_utils.py} (core logic).}
+This module implements the counting algorithms for each supported
+mechanism.  It provides pure functions that accept a list of ballots
+and, where appropriate, token allocations and return a ranking of
+alternatives and the winning option.  Section~\ref{sec:algorithms}
+formalises these algorithms.
+
+\paragraph{\texttt{db.py} (persistence layer).}
+The database module defines the schema and provides asynchronous
+functions to create and query records.  It stores servers, users,
+settings, proposals, proposal options, votes and campaigns in separate
+tables.  The functions abstract away SQL and return Python objects,
+thereby preventing SQL injection and facilitating unit testing.  User
+identifiers are hashed before insertion to protect privacy, and
+foreign‑key constraints ensure referential integrity.
+
+\paragraph{\texttt{utils.py} and other helpers.}
+Auxiliary functions for time formatting, parsing durations, generating
+progress bars and performing moderation actions reside in small helper
+modules.  These utilities separate peripheral concerns from the core
+logic.
+
+\section{Data Model}
+
+The system stores all persistent state in a normalised SQLite
+database.  Each table encapsulates a distinct concept, and foreign keys
+encode relationships between them.  The main tables are summarised
+below:
+
+\begin{description}
+    \item[servers] One record per Discord server using the bot.  Fields
+    include a unique server identifier (primary key), the server name
+    and configuration parameters such as the default voting mechanism,
+    whether weighted campaigns are allowed and the token budget.  When
+    the bot joins a new server, a corresponding entry is created.
+    \item[users] One record per participating user.  The primary key is
+    an internal integer identifier; a hashed version of the user’s
+    Discord ID is stored instead of the raw identifier to preserve
+    anonymity.  Additional columns capture opt‑in status for weighted
+    campaigns and optional demographic data if collected via surveys.
+    \item[proposals] Each proposal represents a decision that a
+    community wishes to make.  Columns include the server ID, the
+    proposer’s user ID, a title and description, a deadline timestamp,
+    the selected voting mechanism, a status flag (draft, active or
+    closed) and whether the proposal is part of a weighted campaign.
+    \item[proposal\_options] For each proposal, this table lists the
+    alternative options.  Each row stores the option text and a
+    foreign key back to the parent proposal.  Composite primary keys
+    ensure uniqueness within a proposal.
+    \item[votes] Each row records a user’s ballot on a proposal.  For
+    ranked and approval votes the ballot is stored as a JSON‑encoded
+    array of option identifiers; for weighted voting the tokens
+    invested in each option are stored.  Additional columns capture
+    the time of submission and whether the voter abstained.  A unique
+    constraint on (proposal ID, user ID) prevents duplicate voting.
+    \item[campaigns] Weighted campaigns group together multiple
+    proposals under a single token budget.  Fields include the
+    campaign name, start and end times, the number of tokens per voter
+    and the list of proposals involved.  A separate table
+    \texttt{user\_campaign\_participation} records how many tokens
+    each user has invested so far in a campaign.
+\end{description}
+
+Indices are added on foreign keys to accelerate joins.  All database
+operations are asynchronous to avoid blocking the event loop.  Hashing
+user identifiers and storing only aggregated results complies with
+data‑protection regulations and reduces the risk of re‑identification.
+
+\section{Core Algorithms}
+\label{sec:algorithms}
+
+This section formalises the voting rules implemented by
+\texttt{voting\_utils.py}.  Let $A$ be the set of alternatives, with
+\(|A|=n\), and let $V$ be the set of voters.  A ballot is either a
+ranking of all alternatives, a set of approved alternatives or a
+vector of token allocations.  In the weighted case each voter is
+endowed with a fixed budget of tokens $B$; the sum of tokens they
+allocate across alternatives must equal $B$.
+
+\paragraph{Plurality.}  Each voter selects a single favourite
+alternative.  The tally function counts the number of first‑choice
+votes received by each alternative,
+\begin{equation}
+    s(a) = \sum_{v \in V} \mathbf{1}\{\text{voter }v\text{ ranks }a\text{ first}\},
+\end{equation}
+where $\mathbf{1}$ is the indicator function.  The alternative(s)
+with the largest score win; ties are broken by randomly selecting
+among the tied alternatives.  This rule corresponds to the native
+Discord poll and suffers from the spoiler effect because only the
+top preference is recorded \cite{Black1958}.
+
+\paragraph{Borda count.}  In the Borda rule each ranking is converted
+into a point vector.  If voter $v$ ranks alternative $a$ in
+position $r_{v}(a)$ (with 1 denoting most preferred), then the
+score assigned to $a$ by $v$ is $n - r_{v}(a)$.  The total
+score for each alternative is
+\begin{equation}
+    s(a) = \sum_{v \in V} (n - r_{v}(a)),
+\end{equation}
+and the alternative with the highest total wins.  The Borda count
+captures more information than plurality by considering the entire
+ranking and is resistant to some strategic voting, but it violates
+independence of irrelevant alternatives \cite{Borda1784}.
+
+\paragraph{Approval voting.}  Each voter approves of any number of
+alternatives.  The tally function counts the number of approvals per
+alternative,
+\begin{equation}
+    s(a) = \sum_{v \in V} \mathbf{1}\{a \in A_{v}^{\text{approved}}\},
+\end{equation}
+where $A_{v}^{\text{approved}}$ is the set of alternatives
+approved by voter $v$.  The alternative(s) with the highest approval
+score win.  Approval voting reduces vote splitting and allows voters
+to express indifference between multiple acceptable options
+\cite{Black1958}.
+
+\paragraph{Instant runoff voting (IRV).}  Also known as ranked
+choice voting, IRV simulates a series of runoff elections.  At each
+round the alternative with the fewest first‑choice votes is eliminated
+and its votes are transferred to the next preferred remaining
+alternative on each ballot.  The process continues until a single
+alternative remains.  Formally, let $A^{(k)}$ be the set of
+candidates remaining in round $k$.  Compute scores
+\(s^{(k)}(a) = \sum_{v \in V} \mathbf{1}\{\text{first choice of }v\text{ in }A^{(k)}\text{ is }a\}\).  Eliminate the alternative with the smallest
+$s^{(k)}$; set $A^{(k+1)} = A^{(k)} \setminus \{\text{eliminated}\}$ and repeat.  IRV guarantees a majority winner if one exists and avoids
+the no–show paradox but is vulnerable to non‑monotonicity
+\cite{Bartholdi1989}.
+
+\paragraph{Condorcet method.}  A Condorcet winner is an alternative
+that defeats every other alternative in head‑to‑head majority
+comparisons.  Construct the pairwise majority matrix $M$ where
+$M_{a,b}$ is the number of voters who prefer $a$ over $b$.
+If there exists an alternative $c$ such that $M_{c,b} > M_{b,c}$
+for all $b \neq c$, then $c$ is the Condorcet winner and is
+selected.  If no such alternative exists (i.e., the majority
+preferences form a cycle), a Condorcet‑consistent method such as the
+Schulze algorithm can be applied to compute a ranking.  Condorcet
+methods respect the majority criterion and are highly expressive but
+may not always produce a unique winner \cite{Condorcet1785}.
+
+\paragraph{Weighted (token) voting.}  To capture intensity of
+preferences, each voter is given a budget $B$ of tokens to distribute
+among the alternatives.  Let $t_{v,a}$ denote the number of tokens
+invested by voter $v$ in alternative $a$, with the constraint
+$\sum_{a \in A} t_{v,a} = B$.  The weighted score of each
+alternative is
+\begin{equation}
+    s(a) = \sum_{v \in V} t_{v,a}.
+\end{equation}
+The alternative with the highest token sum wins.  Weighted voting
+generalises approval voting (each approval contributes one token) and
+is related to quadratic voting in which the cost of casting multiple
+votes increases quadratically with the number of votes.  Our design
+fixes a linear cost in tokens to simplify the user experience and
+allocates an equal budget to each voter to preserve fairness.
+
+In all rules ties are broken by either drawing at random among tied
+alternatives or by applying a deterministic tie‑breaking rule (e.g.,
+lexicographic order).  When run within a weighted campaign, the raw
+vote counts and token sums are also recorded for post‑hoc analysis of
+participation and investment behaviour.
+
+\section{UI and Interaction Flow}
+
+User interactions with the governance bot unfold along a small number of
+well‑defined pathways: proposal submission, campaign configuration,
+voting and result announcement.  Designing these pathways required
+adapting complex social choice tasks to the limited set of UI
+primitives provided by Discord.  Messages may contain up to five
+buttons, and modal dialogs support only short text inputs; there are no
+native drop‑down menus or drag‑and‑drop widgets.  The bot therefore
+implements a series of sequential views that guide the user through each
+step while enforcing input validation on the client side.  Hiding
+interim tallies until voting closes is a deliberate choice to mitigate
+bandwagon effects and preserve independence of irrelevant alternatives
+\cite{Arrow1951}.
+
+\paragraph{Proposal and campaign creation.}  A user initiates a decision
+by invoking a slash command (e.g., \texttt{/proposal}) in the proposals
+channel.  The bot presents a modal requesting a title, a detailed
+description, a closing deadline and a list of options.  For weighted
+campaigns the modal also asks for the number of tokens per voter and the
+number of sub‑decisions (e.g., breakfast, transport, activity, dinner).
+Upon submission the bot validates the inputs (ensuring that the deadline
+is in the future and that options are non‑empty), stores the proposal
+and its options in the database and notifies moderators to approve or
+reject it.  Once approved, the bot posts an embed summarising the
+proposal and provides a button for participants to opt in.
+
+\paragraph{Voting interaction.}  When a proposal becomes active, the bot
+sends each participating user a direct message containing a view tailored
+to the selected voting mechanism.  For plurality and approval voting,
+users see a row of buttons corresponding to alternatives and may select
+one or toggle approvals.  For ranked rules, the view repeatedly
+prompts the voter to choose their next favourite alternative until a
+complete ranking is obtained.  The UI explicitly prevents
+duplicate selections and displays the current partial ranking.
+
+\paragraph{Weighted voting and token allocation.}  In weighted
+campaigns each voter receives a budget of tokens (set by the campaign initiator)  The voting view displays increment and decrement
+buttons next to each alternative along with a progress bar showing the
+remaining budget.  Users may adjust their allocations until they are
+satisfied and then confirm their investment.  Once confirmed the
+allocation is recorded and cannot be altered.  This procedure is
+described in detail in Appendix~\ref{appendix:token}.  The sequential
+allocation interface is intentionally simple to minimise cognitive load
+and align with user‑experience guidelines.
+
+\paragraph{Result publication and logging.}  After the deadline
+elapses the bot calls the appropriate tally function from
+\texttt{voting\_utils.py} and posts an embed summarising the outcome.
+For transparency the embed can include a table of raw vote counts or
+token sums (if the community opts in), but interim results are never
+displayed.  All data required for computing participation rate, time to
+vote and outcome variance are logged for subsequent analysis.  These
+measures are linked to the metrics defined in Chapter~\ref{ch:experiments}.
