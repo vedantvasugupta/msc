@@ -43,6 +43,29 @@ bot core also exposes commands for administrators to view and modify
 server‑level settings (e.g., default voting mechanism and token
 budget).
 
+\begin{algorithm}
+    \caption{Queue worker for vote tracking}\label{alg:queue_worker}
+    \begin{algorithmic}[1]
+        \Procedure{UpdateTrackingWorker}{bot, queue}
+            \State Wait until \texttt{bot} is ready
+            \While{\texttt{bot} is running}
+                \State item $\leftarrow$ dequeue from \texttt{queue}
+                \State Extract $guild\_id$ and $proposal\_id$
+                \If{either identifier missing}
+                    \State Log warning; mark task done; \textbf{continue}
+                \EndIf
+                \State guild $\leftarrow$ bot lookup of $guild\_id$
+                \If{guild exists}
+                    \State \Call{UpdateVoteTracking}{guild, $proposal\_id$}
+                \Else
+                    \State Log warning about missing guild
+                \EndIf
+                \State Mark task done and sleep for 5~s
+            \EndWhile
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
 \paragraph{\texttt{proposals.py} (proposal and campaign creation).}
 This module defines classes derived from \texttt{discord.ui.Modal} and
 \texttt{discord.ui.View} to present interactive forms to users.  When a
@@ -73,6 +96,28 @@ that all user input is solicited through clear, sequential interactions
 despite Discord’s limitations on interface components.  Hiding interim
 results prevents social influence and bandwagon effects as discussed in
 the literature.
+
+\begin{algorithm}
+    \caption{DM voting workflow}\label{alg:dm_voting}
+    \begin{algorithmic}[1]
+        \Procedure{SendVotingDM}{member, proposal, options}
+            \State $proposal\_id \leftarrow$ extract from proposal
+            \If{$proposal\_id$ missing} \State \Return \textbf{False} \EndIf
+            \State Parse voting mechanism and hyperparameters
+            \If{proposal part of a campaign}
+                \State Fetch campaign details and enrol voter
+                \State Retrieve remaining tokens for member
+            \EndIf
+            \State Compose embed with proposal metadata, options and deadline
+            \If{anonymous voting enabled}
+                \State Attach unique identifier for voter
+            \EndIf
+            \State Instantiate view corresponding to mechanism
+            \State Send DM with embed and view
+            \State \Return \textbf{True}
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
 
 \paragraph{\texttt{voting\_utils.py} (core logic).}
 This module implements the counting algorithms for each supported
@@ -152,6 +197,24 @@ ranking of all alternatives, a set of approved alternatives or a
 vector of token allocations.  In the weighted case each voter is
 endowed with a fixed budget of tokens $B$; the sum of tokens they
 allocate across alternatives must equal $B$.
+
+\begin{algorithm}
+    \caption{Tally orchestrator}\label{alg:tally_orchestrator}
+    \begin{algorithmic}[1]
+        \Procedure{CalculateResults}{$proposal\_id$}
+            \State proposal $\leftarrow$ fetch proposal metadata
+            \If{proposal missing} \State \Return \textbf{None} \EndIf
+            \State votes $\leftarrow$ fetch all votes for proposal
+            \State Separate abstentions from effective votes
+            \State options $\leftarrow$ load from database or fallback
+            \State mechanism $\leftarrow$ determine from proposal
+            \State results $\leftarrow$ \Call{count\_votes}{mechanism, effective votes, options, hyperparameters}
+            \State Annotate results with abstain counts, token totals and options used
+            \State Derive final status based on winner or vote totals
+            \State \Return results
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
 
 \paragraph{Plurality.}  Each voter selects a single favourite
 alternative.  The tally function counts the number of first‑choice
